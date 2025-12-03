@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Pull Code') {
             steps {
-                git branch: 'main', url: ''
+                git branch: 'main', url: 'https://github.com/Sooria16/two-tier-architecture.git'
             }
         }
 
