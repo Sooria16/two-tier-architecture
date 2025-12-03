@@ -18,13 +18,21 @@ pipeline {
                 '''
             }
         }
+        stage('Install Nginx') {
+            steps {
+                sh '''
+                sudo dnf install nginx -y
+                sudo systemctl start nginx
+                sudo systemctl enable nginx
+                '''
+            }
+        }
 
         stage('Deploy Frontend to Nginx') {
             steps {
                 sh '''
-                sudo rm -rf /var/www/html/*
-                sudo cp -r frontend/* /var/www/html/
-                sudo systemctl restart nginx
+                sudo rm -rf /usr/share/nginx/html/*
+                sudo cp -r frontend/* /usr/share/nginx/html/   
                 '''
             }
         }
