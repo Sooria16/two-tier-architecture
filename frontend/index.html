@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2 Tier DevOps Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        input {
+            padding: 10px;
+            width: 250px;
+        }
+        button {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .response {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to My DevOps 2-Tier Application</h1>
+    <p>Enter your name and it will send request to backend API</p>
+
+    <input type="text" id="username" placeholder="Enter your name">
+    <button onclick="sendName()">Submit</button>
+
+    <div class="response" id="result"></div>
+
+    <script>
+        async function sendName() {
+            const name = document.getElementById("username").value;
+            const response = await fetch("/api/hello", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name })
+            });
+            const data = await response.json();
+            document.getElementById("result").innerHTML = data.message;
+        }
+    </script>
+
+</body>
+</html>
