@@ -52,29 +52,28 @@ pipeline {
             }
         }
 
-        stage('Deploy Frontend') {
-            steps {
-                script {
-                    // Create webroot if not exists
-                    sh "sudo mkdir -p ${NGINX_WEBROOT}"
-                    
-                    // Copy files
-                    sh "sudo cp -r frontend/* ${NGINX_WEBROOT}/"
-                    
-                    // Set proper permissions
-                    sh "sudo chown -R www-data:www-data ${NGINX_WEBROOT}"
-                    sh "sudo chmod -R 755 ${NGINX_WEBROOT}"
-                    
-                    // Test Nginx configuration
-                    sh "sudo nginx -t"
-                    
-                    // Restart Nginx
-                    sh "sudo systemctl restart nginx"
-                }
-            }
+     stage('Deploy Frontend') {
+    steps {
+        script {
+            // Create webroot if not exists
+            sh "sudo mkdir -p ${NGINX_WEBROOT}"
+            
+            // Copy files
+            sh "sudo cp -r frontend/* ${NGINX_WEBROOT}/"
+            
+            // Set proper permissions - use 'nginx:nginx' or the correct user:group
+            sh "sudo chown -R nginx:nginx ${NGINX_WEBROOT} || sudo chown -R apache:apache ${NGINX_WEBROOT} || true"
+            sh "sudo chmod -R 755 ${NGINX_WEBROOT}"
+            
+            // Test Nginx configuration
+            sh "sudo nginx -t"
+            
+            // Restart Nginx
+            sh "sudo systemctl restart nginx"
         }
     }
-
+}
+    }
     post {
         success {
             echo 'Deployment completed successfully!'
