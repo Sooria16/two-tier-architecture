@@ -1,14 +1,25 @@
 const express = require("express");
-const cors = require("cors");
-
+const cors = require('cors');
 const app = express();
-app.use(cors());
+
+// Enable CORS for all routes
+app.use(cors({
+    origin: 'http://34.212.131.221', // Your frontend URL
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Parse JSON bodies
 app.use(express.json());
 
-// Updated GET API to match frontend request (/api/hello)
+// API Endpoint
 app.get("/api/hello", (req, res) => {
     const name = req.query.name || "Guest";
     res.send(`Hello ${name}, backend API working successfully!`);
 });
 
-app.listen(3000, () => console.log("Backend running on port 3000"));
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Backend running on port ${PORT}`);
+});
