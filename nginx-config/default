@@ -1,13 +1,13 @@
 server {
     listen 80;
-    server_name _;
 
-    location / {
-        root /var/www/html;
-        index index.html;
-    }
+    # Serve frontend
+    root /var/www/html;
+    index index.html;
 
+    # Forward API requests to backend
     location /api/ {
-        proxy_pass http://BACKEND_SERVER_IP:3000/;
+        proxy_pass http://54.190.93.13:3000/;
+        proxy_set_header Host $host;
     }
 }
