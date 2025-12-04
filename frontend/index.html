@@ -42,11 +42,37 @@
 
     <script>
     async function sendName() {
-        const name = document.getElementById("username").value;
-        const response = await fetch("/api/hello?name=" + name);
-        const data = await response.text();
-        document.getElementById("result").innerHTML = data;
+    const nameInput = document.getElementById("username");
+    const resultDiv = document.getElementById("result");
+    
+    // Input validation
+    const name = nameInput.value.trim();
+    if (!name) {
+        resultDiv.innerHTML = "Please enter your name";
+        return;
     }
+
+    try {
+        // Show loading state
+        resultDiv.innerHTML = "Sending request...";
+        
+        // Make the API request
+        const response = await fetch(`/api/hello?name=${encodeURIComponent(name)}`);
+        
+        // Check if the response is OK (status 200-299)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Get and display the response
+        const data = await response.text();
+        resultDiv.innerHTML = data;
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.innerHTML = `Error: ${error.message}`;
+    }
+}
+    
     </script>
 
 
