@@ -20,8 +20,7 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/Sooria16/two-tier-architecture.git',
-                        credentialsId: 'YOUR_GITHUB_CREDENTIALS_ID'
+                        url: 'https://github.com/Sooria16/two-tier-architecture.git'
                     ]],
                     extensions: [[
                         $class: 'CleanBeforeCheckout'
@@ -34,18 +33,42 @@ pipeline {
             steps {
                 script {
                     try {
+                        // Check if Node.js is installed
                         sh '''
-                            echo "Setting up Node.js..."
-                            curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | sudo -E bash -
-                            sudo apt-get install -y nodejs
-                            
-                            echo "Installing PM2..."
-                            sudo npm install -g pm2
+                            echo "Checking Node.js installation..."
+                            if ! command -v node &> /dev/null; then
+                                echo "Node.js not found. Installing Node.js ${NODE_VERSION}..."
+                                # For RHEL/CentOS/Fedora
+                                if [ -f /etc/redhat-release ]; then
+                                    curl -sL https://rpm.nodesource.com/setup_${NODE_VERSION} | sudo bash -
+                                    sudo yum install -y nodejs
+                                # For Amazon Linux 2023
+                                elif [ -f /etc/system-release ] && grep -q "Amazon Linux 2023" /etc/system-release; then
+                                    curl -sL https://rpm.nodesource.com/setup_${NODE_VERSION} | sudo bash -
+                                    sudo dnf install -y nodejs
+                                # For Amazon Linux 2
+                                elif [ -f /etc/system-release ] && grep -q "Amazon Linux 2" /etc/system-release; then
+                                    curl -sL https://rpm.nodesource.com/setup_${NODE_VERSION} | sudo bash -
+                                    sudo yum install -y nodejs
+                                else
+                                    echo "Unsupported Linux distribution"
+                                    exit 1
+                                fi
+                            fi
                             
                             echo "Node.js version:"
                             node -v
                             echo "npm version:"
                             npm -v
+                            
+                            # Install PM2 globally if not installed
+                            if ! command -v pm2 &> /dev/null; then
+                                echo "Installing PM2..."
+                                sudo npm install -g pm2
+                            fi
+                            
+                            echo "PM2 version:"
+                            pm2 --version
                         '''
                     } catch (e) {
                         error "Failed to set up environment: ${e.message}"
@@ -71,7 +94,7 @@ pipeline {
                                 pm2 save
                                 
                                 # Setup PM2 to start on boot
-                                sudo env PATH=$PATH:/usr/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u jenkins --hp /var/lib/jenkins
+                                sudo env PATH=$PATH:/usr/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup
                                 pm2 save
                                 
                                 echo "Backend started successfully"
@@ -94,14 +117,14 @@ pipeline {
                             sudo cp -r frontend/* ${NGINX_WEBROOT}/
                             
                             # Set correct permissions
-                            sudo chown -R nginx:nginx ${NGINX_WEBROOT} || sudo chown -R www-data:www-data ${NGINX_WEBROOT} || true
+                            sudo chown -R nginx:nginx ${NGINX_WEBROOT} || sudo chown -R apache:apache ${NGINX_WEBROOT} || true
                             sudo chmod -R 755 ${NGINX_WEBROOT}
                             
                             # Copy Nginx config
                             echo "Updating Nginx configuration..."
-                            sudo cp nginx/default /etc/nginx/sites-available/default
+                            sudo cp nginx/default /etc/nginx/conf.d/default.conf
                             sudo nginx -t
-                            sudo systemctl restart nginx
+                            sudo systemctl restart nginx || sudo service nginx restart
                             
                             echo "Frontend deployed successfully"
                         """
@@ -126,8 +149,8 @@ pipeline {
             echo '❌ Deployment failed!'
             // Get build logs
             script {
-                def log = currentBuild.rawBuild.getLog(100).join('\n')
-                echo "Build Logs:\n${log}"
+                def log = currentBuild.getLogs()
+                echo "Last 100 lines of build log:\n${log}"
             }
         }
     }
