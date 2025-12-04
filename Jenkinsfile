@@ -2,24 +2,15 @@ pipeline {
     agent any
 
     environment {
-        // Make these configurable in Jenkins
-        GIT_REPO = 'https://github.com/Sooria16/two-tier-architecture.git'
-        GIT_BRANCH = 'main'
         NGINX_WEBROOT = '/var/www/html'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                script {
-                    checkout([$class: 'GitSCM',
-                        branches: [[name: "*/${GIT_BRANCH}"]],
-                        userRemoteConfigs: [[
-                            url: "${GIT_REPO}",
-                            credentialsId: 'your-github-credentials' // Add this in Jenkins credentials
-                        ]]
-                    ])
-                }
+                // This will be handled by SCM configuration in Jenkins job
+                echo 'Checking out code...'
+                checkout scm
             }
         }
 
@@ -52,7 +43,10 @@ pipeline {
                         echo "Starting application..."
                         NODE_ENV=production pm2 start server.js --name "two-tier-backend" -f
                         pm2 save
-                        pm2 startup
+                        
+                        # Setup PM2 to start on boot
+                        sudo env PATH=$PATH:/usr/bin pm2 startup
+                        pm2 save
                     '''
                 }
             }
@@ -87,11 +81,6 @@ pipeline {
         }
         failure {
             echo 'Deployment failed!'
-            // Add cleanup or rollback steps here
-        }
-        always {
-            // Clean up workspace
-            cleanWs()
         }
     }
 }
