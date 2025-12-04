@@ -2,34 +2,34 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
-// Enable CORS
+// Middleware
 app.use(cors());
+app.use(express.json());
 
-// Test endpoint
+// API Routes
 app.get('/api/hello', (req, res) => {
-    console.log('Received request:', req.query);
-    res.send(`Hello ${req.query.name || 'World'}!`);
+    const name = req.query.name || 'World';
+    res.json({ message: `Hello ${name} from backend!` });
 });
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).send('Something broke!');
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
-// Start server
 const server = app.listen(PORT, HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT}`);
+    console.log(`Backend running on http://${HOST}:${PORT}`);
 });
 
 // Handle server errors
 server.on('error', (error) => {
+    console.error('Server error:', error);
     if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use`);
-    } else {
-        console.error('Server error:', error);
     }
 });
