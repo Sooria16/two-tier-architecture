@@ -5,8 +5,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// GET API for your frontend
-app.get("/hello", (req, res) => {
+// Updated GET API to match frontend request (/api/hello)
+app.get("/api/hello", (req, res) => {
     const name = req.query.name || "Guest";
     res.send(`Hello ${name}, backend API working successfully!`);
 });
