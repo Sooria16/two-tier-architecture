@@ -1,25 +1,35 @@
-const express = require("express");
+const express = require('express');
 const cors = require('cors');
 const app = express();
 
-// Enable CORS for all routes
-app.use(cors({
-    origin: 'http://34.212.131.221', // Your frontend URL
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Enable CORS
+app.use(cors());
 
-// Parse JSON bodies
-app.use(express.json());
-
-// API Endpoint
-app.get("/api/hello", (req, res) => {
-    const name = req.query.name || "Guest";
-    res.send(`Hello ${name}, backend API working successfully!`);
+// Test endpoint
+app.get('/api/hello', (req, res) => {
+    console.log('Received request:', req.query);
+    res.send(`Hello ${req.query.name || 'World'}!`);
 });
 
-// Start the server
+// Error handling
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).send('Something broke!');
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Backend running on port ${PORT}`);
+const HOST = '0.0.0.0';
+
+// Start server
+const server = app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+    } else {
+        console.error('Server error:', error);
+    }
 });
