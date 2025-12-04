@@ -43,7 +43,7 @@
     <script>
     async function sendName() {
         const name = document.getElementById("username").value;
-        const response = await fetch("http://54.190.93.13/hello?name=" + name);
+        const response = await fetch("http://54.190.93.13:3000/hello?name=" + name);
         const data = await response.text();
         document.getElementById("result").innerHTML = data;
     }
